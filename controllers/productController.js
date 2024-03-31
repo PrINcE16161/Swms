@@ -29,31 +29,15 @@ const productController = {
             if (err) {
                 return next(CustomErrorHandler.serverError(err.message));
             }
-            const filePath = req.file.path;
-            // validation
-            const { error } = productSchema.validate(req.body);
-            if (error) {
-                // Delete the uploaded file
-                fs.unlink(`${appRoot}/${filePath}`, (err) => {
-                    if (err) {
-                        return next(
-                            CustomErrorHandler.serverError(err.message)
-                        );
-                    }
-                });
 
-                return next(error);
-                // rootfolder/uploads/filename.png
-            }
-
-            const { name, price, size } = req.body;
+            const { id, distance, binlevel, angle } = req.body;
             let document;
             try {
                 document = await Product.create({
-                    name,
-                    price,
-                    size,
-                    image: filePath,
+                    id,
+                    distance,
+                    binlevel,
+                    angle,
                 });
             } catch (err) {
                 return next(err);
@@ -89,16 +73,16 @@ const productController = {
                 // rootfolder/uploads/filename.png
             }
 
-            const { name, price, size } = req.body;
+            const { id, distance, binlevel, angle } = req.body;
             let document;
             try {
                 document = await Product.findOneAndUpdate(
-                    { _id: req.params.id },
+                    { id: req.params.id },
                     {
-                        name,
-                        price,
-                        size,
-                        ...(req.file && { image: filePath }),
+                        id,
+                        distance,
+                        binlevel,
+                        angle
                     },
                     { new: true }
                 );
@@ -139,7 +123,7 @@ const productController = {
     async show(req, res, next) {
         let document;
         try {
-            document = await Product.findOne({ _id: req.params.id }).select(
+            document = await Product.findOne({ id: req.params.id }).select(
                 '-updatedAt -__v'
             );
         } catch (err) {
@@ -151,7 +135,7 @@ const productController = {
         let documents;
         try {
             documents = await Product.find({
-                _id: { $in: req.body.ids },
+                id: { $in: req.body.ids },
             }).select('-updatedAt -__v');
         } catch (err) {
             return next(CustomErrorHandler.serverError());
